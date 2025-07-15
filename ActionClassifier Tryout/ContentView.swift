@@ -1,3 +1,5 @@
+// File: ContentView.swift
+
 import SwiftUI
 
 struct ContentView: View {
@@ -5,71 +7,79 @@ struct ContentView: View {
 
     var body: some View {
         ZStack {
-            // Camera feed + pose overlay
-            if let img = vm.frameImage {
-                Image(decorative: img, scale: 1.0)
-                    .resizable()
-                    .scaledToFill()
-                    .ignoresSafeArea()
-            } else {
-                Color.black.ignoresSafeArea()
+            // MARK: – Camera preview + skeleton overlay
+            GeometryReader { geo in
+                if let img = vm.frameImage {
+                    Image(decorative: img, scale: 1.0)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: geo.size.width, height: geo.size.height)
+                        .clipped()
+                        .overlay(
+                            // draw wireframe over the camera
+                            Canvas { context, size in
+                                guard let poses = vm.detectedPoses else { return }
+                                context.withCGContext { cg in
+                                    // scale normalized landmarks into full view
+                                    let scaleX = size.width
+                                    let scaleY = size.height
+                                    let transform = CGAffineTransform(scaleX: scaleX, y: scaleY)
+                                    for pose in poses {
+                                        pose.drawWireframeToContext(cg,
+                                                                    applying: transform)
+                                    }
+                                }
+                            }
+                            .allowsHitTesting(false)
+                        )
+                } else {
+                    Color.black
+                }
             }
+            .ignoresSafeArea()
 
+            // MARK: – Prediction labels + controls
             VStack {
-                // Top‑left labels…
                 HStack(alignment: .top) {
-                    VStack(alignment: .leading, spacing: 8) {
+                    VStack(alignment: .leading, spacing: 6) {
                         Text(vm.predictionLabel)
                             .font(.headline)
-                            .foregroundColor(.white)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 8)
+                            .padding(8)
                             .background(Color.black.opacity(0.6))
-                            .cornerRadius(6)
-
+                            .cornerRadius(8)
                         Text(vm.confidenceLabel)
                             .font(.subheadline)
-                            .foregroundColor(.white)
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 6)
+                            .padding(6)
                             .background(Color.black.opacity(0.6))
                             .cornerRadius(6)
                     }
                     Spacer()
                 }
-                .padding(.leading, 16)
-                .padding(.top, 16)
-
                 Spacer()
-
-                // Bottom controls
                 HStack {
-                    // **Fixed** call here (no `$`) to your VM method:
                     Button {
-                        vm.toggleCameraSelection()
+                        vm.toggleCamera()
                     } label: {
-                        Image(systemName: "camera.rotate")
-                            .font(.title2)
-                            .foregroundColor(.white)
+                        Label("Camera", systemImage: "camera.rotate")
                     }
-
                     Spacer()
-
                     Button("Summary") {
                         vm.showSummary = true
-                        vm.videoCapture.isEnabled = false
+                        vm.pauseSession()
                     }
-                    .font(.headline)
-                    .foregroundColor(.white)
                 }
                 .padding()
                 .background(Color.black.opacity(0.6))
+                .foregroundColor(.white)
             }
         }
-        .onAppear { vm.startSession() }
+        .onAppear {
+            vm.startSession()
+        }
         .sheet(isPresented: $vm.showSummary) {
             SummaryView(actionFrameCounts: vm.actionFrameCounts) {
-                vm.dismissSummary()
+                vm.showSummary = false
+                vm.resumeSession()
             }
         }
     }
