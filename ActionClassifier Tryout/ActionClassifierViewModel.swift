@@ -8,9 +8,8 @@ import CoreGraphics
 
 @MainActor
 class ActionClassifierViewModel: ObservableObject {
-    // MARK: – Published state
+    // MARK: – Published UI state
     @Published var frameImage: CGImage?
-    @Published var detectedPoses: [Pose]? = nil
     @Published var predictionLabel: String = ActionPrediction.startingPrediction.label
     @Published var confidenceLabel: String = "Observing..."
     @Published var showSummary: Bool = false
@@ -27,7 +26,7 @@ class ActionClassifierViewModel: ObservableObject {
         videoProcessingChain.delegate = self
     }
 
-    /// Starts (or restarts) the capture session as soon as possible.
+    /// Starts (or restarts) the capture session.
     func startSession() {
         DispatchQueue.global(qos: .userInitiated).async {
             self.videoCapture.updateDeviceOrientation()
@@ -65,7 +64,6 @@ extension ActionClassifierViewModel: VideoCaptureDelegate {
         DispatchQueue.main.async {
             self.predictionLabel = ActionPrediction.startingPrediction.label
             self.confidenceLabel = "Observing..."
-            self.detectedPoses = nil
             self.frameImage = nil
             self.actionFrameCounts.removeAll()
         }
@@ -79,8 +77,8 @@ extension ActionClassifierViewModel: VideoProcessingChainDelegate {
     func videoProcessingChain(_ chain: VideoProcessingChain,
                               didDetect poses: [Pose]?,
                               in frame: CGImage) {
+        // We no longer store poses
         DispatchQueue.main.async {
-            self.detectedPoses = poses
             self.frameImage = frame
         }
     }

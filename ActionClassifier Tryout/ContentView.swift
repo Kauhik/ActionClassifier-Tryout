@@ -7,33 +7,17 @@ struct ContentView: View {
 
     var body: some View {
         ZStack {
-            // MARK: – Camera preview + skeleton overlay
+            // MARK: – Camera preview only (no more Canvas overlay)
             GeometryReader { geo in
                 if let img = vm.frameImage {
                     Image(decorative: img, scale: 1.0)
                         .resizable()
                         .scaledToFill()
-                        .frame(width: geo.size.width, height: geo.size.height)
+                        .frame(width: geo.size.width,
+                               height: geo.size.height)
                         .clipped()
-                        .overlay(
-                            // draw wireframe over the camera
-                            Canvas { context, size in
-                                guard let poses = vm.detectedPoses else { return }
-                                context.withCGContext { cg in
-                                    // scale normalized landmarks into full view
-                                    let scaleX = size.width
-                                    let scaleY = size.height
-                                    let transform = CGAffineTransform(scaleX: scaleX, y: scaleY)
-                                    for pose in poses {
-                                        pose.drawWireframeToContext(cg,
-                                                                    applying: transform)
-                                    }
-                                }
-                            }
-                            .allowsHitTesting(false)
-                        )
                 } else {
-                    Color.black
+                    Color.black.ignoresSafeArea()
                 }
             }
             .ignoresSafeArea()
