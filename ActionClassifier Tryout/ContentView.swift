@@ -1,5 +1,3 @@
-// File: ContentView.swift
-
 import SwiftUI
 
 struct ContentView: View {
@@ -7,7 +5,7 @@ struct ContentView: View {
 
     var body: some View {
         ZStack {
-            // Camera preview + pose overlay
+            // Camera feed + pose overlay
             if let img = vm.frameImage {
                 Image(decorative: img, scale: 1.0)
                     .resizable()
@@ -18,35 +16,51 @@ struct ContentView: View {
             }
 
             VStack {
-                // Top‑left prediction + confidence
+                // Top‑left labels…
                 HStack(alignment: .top) {
-                    VStack(alignment: .leading, spacing: 6) {
+                    VStack(alignment: .leading, spacing: 8) {
                         Text(vm.predictionLabel)
                             .font(.headline)
-                            .padding(8)
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 8)
                             .background(Color.black.opacity(0.6))
-                            .cornerRadius(8)
+                            .cornerRadius(6)
+
                         Text(vm.confidenceLabel)
                             .font(.subheadline)
-                            .padding(6)
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 6)
                             .background(Color.black.opacity(0.6))
                             .cornerRadius(6)
                     }
                     Spacer()
                 }
+                .padding(.leading, 16)
+                .padding(.top, 16)
+
                 Spacer()
+
                 // Bottom controls
                 HStack {
+                    // **Fixed** call here (no `$`) to your VM method:
                     Button {
-                        vm.toggleCamera()
+                        vm.toggleCameraSelection()
                     } label: {
-                        Label("Camera", systemImage: "camera.rotate")
+                        Image(systemName: "camera.rotate")
+                            .font(.title2)
+                            .foregroundColor(.white)
                     }
+
                     Spacer()
+
                     Button("Summary") {
                         vm.showSummary = true
                         vm.videoCapture.isEnabled = false
                     }
+                    .font(.headline)
+                    .foregroundColor(.white)
                 }
                 .padding()
                 .background(Color.black.opacity(0.6))

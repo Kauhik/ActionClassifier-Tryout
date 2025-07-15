@@ -1,4 +1,4 @@
-// File: SummaryView.swift
+// SummaryView.swift
 
 import SwiftUI
 
@@ -14,24 +14,20 @@ struct SummaryView: View {
 
     var body: some View {
         NavigationView {
-            List {
-                ForEach(sortedActions, id: \.self) { action in
-                    HStack {
-                        Text(action)
-                        Spacer()
-                        Text(String(format: "%.1fs",
-                                    Double(actionFrameCounts[action] ?? 0)
-                                        / ExerciseClassifier.frameRate))
-                            .foregroundColor(.orange)
-                    }
+            List(sortedActions, id: \.self) { action in
+                HStack {
+                    Text(action)
+                    Spacer()
+                    Text(String(format: "%.1fs",
+                                Double(actionFrameCounts[action] ?? 0)
+                                    / ExerciseClassifier.frameRate))
+                        .foregroundColor(.orange)
                 }
             }
             .navigationTitle("Summary")
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Done") {
-                        onDismiss()
-                    }
+                    Button("Done") { onDismiss() }
                 }
             }
         }
@@ -40,6 +36,6 @@ struct SummaryView: View {
 
 struct SummaryView_Previews: PreviewProvider {
     static var previews: some View {
-        SummaryView(actionFrameCounts: ["Jumping Jacks": 300], onDismiss: {})
+        SummaryView(actionFrameCounts: ["Jumping Jacks": 180], onDismiss: {})
     }
 }
